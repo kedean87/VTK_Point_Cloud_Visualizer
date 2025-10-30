@@ -1,5 +1,9 @@
 # 🌀 VTK Point Cloud Visualizer
 
+![Point Cloud Visualizer](images/VTK_PCV.png)
+![Point Cloud Visualizer Emissive](images/VTK_PCV_emissive.png)
+> Showing the cloud with emissivity, many other interactive options to exploit.
+
 An interactive **3D point cloud visualizer** built with **VTK** and **Python**, designed for real-time rendering of large, colored point clouds.  
 The system features custom GLSL-like shaders, visibility filtering, dynamic frustum updates, and shader switching without reloading the scene.
 
