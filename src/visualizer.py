@@ -903,7 +903,7 @@ def main():
   # read in the data and create the BST to handle the point data and
   # set callbacks to the classes to handle the point cloud manipulation
   handleCloud = HandleVTKCloud(renderer=renderer,
-    filename="/Users/kedean/workspace/python/data/output_pointcloud.vtp",)
+    filename="data/example.vtp",)
   frustum = UpdateFrustum(handleCloud)
   queue = UpdateNodeVisibility(handleCloud)
   occlFilter = FilterOccludedPoints(handleCloud)
