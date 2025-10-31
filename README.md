@@ -1,5 +1,6 @@
 # 🌀 VTK Point Cloud Visualizer
 
+![Point Cloud Visualizer in Use](images/visualizer.gif)
 ![Point Clouds for Visualizer](images/DifferentClouds.png)
 ![Point Cloud Visualizer](images/VTK_PCV.png)
 ![Point Cloud Visualizer Emissive](images/VTK_PCV_emissive.png)
