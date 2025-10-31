@@ -27,17 +27,21 @@ from utils import *
 
 ########################################################################
 class TreeNode:
-  def __init__(self, Id, bounds, data):
-    self.left = None
-    self.right = None
-    
-    self.Id = Id
-    self.bounds = bounds
-    self.data = data
-    
-    self.empty = True
-    if data:
-        self.empty = False
+    def __init__(self, Id, bounds, data, level=0):
+        self.left = None
+        self.right = None
+        
+        self.Id = Id
+        self.bounds = bounds
+        self.data = data
+        self.level = level  # new attribute
+        
+        self.empty = True
+        if data:
+            self.empty = False
+        
+        self.loaded = False
+
     
 ########################################################################
 # FUNCTIONS
