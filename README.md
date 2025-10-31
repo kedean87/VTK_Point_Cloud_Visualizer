@@ -21,6 +21,10 @@ It provides a responsive rendering pipeline that supports:
 
 It’s designed for research, visualization, and 3D graphics experimentation.
 
+![Bounding Box Root Level](images/BoundingBoxRoot.png)
+![Bounding Box Level 1](images/BoundingBoxLevel1.png)
+![Bounding Box Deeper Levels](images/BoundingBoxDeeperLevels.png)
+
 ---
 
 ## ⚙️ Features
@@ -58,6 +62,8 @@ Each preset includes a custom fragment shader snippet and a corresponding scale 
 - `SQUARE`
 - `SQUARE_OUTLINE`
 - `CUSTOM`
+
+![Squares and Open Squares](images/SplattingExamples.png)
 
 **Shader Example:**
 ```glsl
