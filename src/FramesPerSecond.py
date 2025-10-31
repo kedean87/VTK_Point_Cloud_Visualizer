@@ -30,7 +30,7 @@ class FpsObserver:
         
         _fps = self.mFrameCount/_duration
         # ~ print("fps={:.3f}".format(_fps))
-        self.mFpsActor.SetInput("FPS: {:.2f}".format(_fps))
+        self.mFpsActor.SetInput("FPS: {:.3f}".format(_fps))
         
         self.mStartTime  = _currentTime
         self.mFrameCount = 0
@@ -38,7 +38,7 @@ class FpsObserver:
   def _createFpsTextActor(self):
     self.mFpsActor = vtk.vtkTextActor()
     self.mFpsActor.GetTextProperty().SetFontFamilyAsString("Georgia")
-    self.mFpsActor.GetTextProperty().SetFontSize(20)
-    self.mFpsActor.GetTextProperty().SetColor([1, 1, 1])
+    self.mFpsActor.GetTextProperty().SetFontSize(125)
+    self.mFpsActor.GetTextProperty().SetColor([1, 2, 3])
     self.mFpsActor.SetPosition(self.ActorPosX, self.ActorPosY)
     self.mRenderer.AddActor(self.mFpsActor)
