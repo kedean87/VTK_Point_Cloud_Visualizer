@@ -14,10 +14,10 @@ class BSTPointCloud(VTKShaders):
     self.vtkShaders = VTKShaders()
     
     self.center = [
-		(points.T[0].max() - points.T[0].min()) / 2,
-		(points.T[1].max() - points.T[1].min()) / 2,
-		(points.T[2].max() - points.T[2].min()) / 2
-		]
+        (points.T[0].max() - points.T[0].min()) / 2,
+        (points.T[1].max() - points.T[1].min()) / 2,
+        (points.T[2].max() - points.T[2].min()) / 2
+        ]
     
     # convert data from numpy array to vtkPoints
     vtkPoints = vtk.vtkPoints()
@@ -60,3 +60,17 @@ class BSTPointCloud(VTKShaders):
     self.bstActor.SetMapper(self.pg_mapper)
     self.bstActor.GetProperty().BackfaceCullingOn()
     self.bstActor.GetProperty().SetEmissiveFactor(2.0, 2.0, 2.0)
+    
+    bounds = self.bstPolyData.GetBounds()
+    cube = vtk.vtkCubeSource()
+    xmin, xmax, ymin, ymax, zmin, zmax = bounds
+    cube.SetBounds(xmin, xmax, ymin, ymax, zmin, zmax)
+    mapper = vtk.vtkPolyDataMapper()
+    mapper.SetInputConnection(cube.GetOutputPort())
+    self.bounding_box_actor = vtk.vtkActor()
+    self.bounding_box_actor.SetMapper(mapper)
+    self.bounding_box_actor.GetProperty().SetColor((1,2,3))
+    self.bounding_box_actor.GetProperty().SetRepresentationToWireframe()
+    self.bounding_box_actor.GetProperty().SetLineWidth(2)
+    self.bounding_box_actor.SetVisibility(False)
+        
