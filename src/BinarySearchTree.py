@@ -41,6 +41,7 @@ class TreeNode:
             self.empty = False
         
         self.loaded = False
+        self.visible = False
 
     
 ########################################################################
