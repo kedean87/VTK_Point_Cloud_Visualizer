@@ -801,7 +801,7 @@ def main():
   renderWindowInteractor.AddObserver('TimerEvent', frustum.execute)
   renderWindowInteractor.AddObserver('TimerEvent', queue.execute)
   #renderWindowInteractor.AddObserver('TimerEvent', distApproxShaderShapes.execute)
-  #renderWindowInteractor.AddObserver('TimerEvent', distApproxVoxelGrid.execute)
+  renderWindowInteractor.AddObserver('TimerEvent', distApproxVoxelGrid.execute)
   renderWindowInteractor.AddObserver('KeyPressEvent', style.execute)
   # renderWindowInteractor.AddObserver('TimerEvent', occlFilter.execute)
   timerId = renderWindowInteractor.CreateRepeatingTimer(1)
