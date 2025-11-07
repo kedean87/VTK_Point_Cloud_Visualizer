@@ -1,6 +1,8 @@
 # 🌀 VTK Point Cloud Visualizer
 
-![Point Cloud Visualizer in Use](images/visualizer.gif)
+![Point Cloud Visualizer in Use](images/demo_final.gif)
+> `Screen Record` on MacOS `dropped FPS` (frames per second) `down by 10-20` depending on where I was located within the screen and field of view.
+
 ![Point Clouds for Visualizer](images/DifferentClouds.png)
 ![Point Cloud Visualizer](images/VTK_PCV.png)
 ![Point Cloud Visualizer Emissive](images/VTK_PCV_emissive.png)
