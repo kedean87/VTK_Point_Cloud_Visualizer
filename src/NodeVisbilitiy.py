@@ -6,32 +6,6 @@ from Frustum import *
 import numpy as np
 import vtk
 
-def boxIntersectsFrustum(bounds, vtk_planes):
-    xmin, xmax, ymin, ymax, zmin, zmax = bounds
-    corners = np.array([
-        [xmin, ymin, zmin], [xmax, ymin, zmin],
-        [xmin, ymax, zmin], [xmax, ymax, zmin],
-        [xmin, ymin, zmax], [xmax, ymin, zmax],
-        [xmin, ymax, zmax], [xmax, ymax, zmax],
-    ])
-
-    # vtkPlanes gives us normals and points (origins)
-    normals = vtk_planes.GetNormals()
-    points = vtk_planes.GetPoints()
-
-    for i in range(normals.GetNumberOfTuples()):
-        n = np.array(normals.GetTuple3(i))
-        p0 = np.array(points.GetPoint(i))
-        outside = 0
-        for corner in corners:
-            # signed distance from plane
-            if np.dot(n, corner - p0) < 0:
-                outside += 1
-        if outside == 8:
-            # all corners are behind this plane
-            return False
-    return True
-
 
 class UpdateNodeVisibility:
     def __init__(self, handleVTKCloud):
@@ -46,45 +20,68 @@ class UpdateNodeVisibility:
             return
             
         camera = self.handleVTKCloud.renderer.GetActiveCamera()
-        
-        camera_center = (
-            camera.GetPosition()
-            if hasattr(self.handleVTKCloud.frustum, "GetCenter")
-            else (0, 0, 0)
-        )
+        camera_pos = np.array(camera.GetPosition())
+        focal_point = np.array(camera.GetFocalPoint())
+        camera_forward = focal_point - camera_pos
+        camera_forward /= np.linalg.norm(camera_forward)
 
-        # keep existing entries and only add *new visible nodes*
-        self.updateVisibleNodes(self.handleVTKCloud.root, camera_center)
+        self.updateVisibleNodes(camera_pos, camera_forward)
 
-    def updateVisibleNodes(self, node, camera_center):
-        if node is None or node.empty:
+    def updateVisibleNodes(self, camera_pos, camera_forward):
+        if not self.handleVTKCloud.root or self.handleVTKCloud.root.empty:
             return
 
-        # ✅ Correct frustum–AABB intersection for vtkPlanes
-        #if not boxIntersectsFrustum(node.bounds, vtk_planes):
-        #    node.visible = False
-        #    return
+        nodes_to_check = [self.handleVTKCloud.root]
 
-        node_center = node.data.center
-        dist = np.linalg.norm(np.array(camera_center) - np.array(node_center))
-        lod_threshold = self.lodThreshold(node.level)
-        
-        if dist < lod_threshold and (node.left or node.right):
-            self.updateVisibleNodes(node.left, camera_center)
-            self.updateVisibleNodes(node.right, camera_center)
-        else:
-            node.visible = True
-            self.handleVTKCloud.priorityQueue.append((dist, node))
-            node.data.bstActor.SetVisibility(True)
-            return
-        
-        node.data.bstActor.SetVisibility(False)
-    
+        while nodes_to_check:
+            batch = nodes_to_check
+            nodes_to_check = []
+
+            # Filter nodes with valid data
+            batch = [n for n in batch if n and n.data and hasattr(n.data, "center")]
+            if not batch:
+                continue
+
+            centers = np.array([n.data.center for n in batch])
+            vecs_to_nodes = centers - camera_pos
+            dists = np.linalg.norm(vecs_to_nodes, axis=1)
+
+            # Distance to center line (perpendicular)
+            norms = np.linalg.norm(vecs_to_nodes, axis=1, keepdims=True)
+            vecs_normed = vecs_to_nodes / np.clip(norms, 1e-8, None)
+            cos_thetas = np.dot(vecs_normed, camera_forward)
+            cross_prods = np.cross(vecs_to_nodes, camera_forward)
+            dists_to_center_line = np.linalg.norm(cross_prods, axis=1)
+
+            # Compute LOD thresholds for all nodes
+            levels = np.array([n.level for n in batch])
+            lods = np.array([self.lodThreshold(l) for l in levels])
+            adjusted_lods = lods * (0.25 + 0.25 * cos_thetas)
+
+            # Visibility: dual distance
+            visible_mask = (dists < adjusted_lods) & (dists_to_center_line < lods)
+
+            for i, node in enumerate(batch):
+                node.visible = visible_mask[i] or (node.level == 0)
+                if node.visible:
+                    self.handleVTKCloud.priorityQueue.append((dists[i], node))
+                    if node.left: nodes_to_check.append(node.left)
+                    if node.right: nodes_to_check.append(node.right)
+
+    def point_in_frustum(self, point, vtk_planes):
+        num_planes = vtk_planes.GetNumberOfPlanes()
+        for i in range(num_planes):
+            plane = vtk_planes.GetPlane(i)  # vtkPlane
+            normal = np.array(plane.GetNormal())
+            origin = np.array(plane.GetOrigin())
+            # if point is "behind" the plane, it's outside
+            if np.dot(point - origin, normal) < 0:
+                return False
+        return True
+
     def lodThreshold(self, level):
-        max_dist = 10.0   # threshold at root level
-        min_dist = 0.1    # deepest level threshold limit
-        k = 0.3             # rate of decay (lower = slower)
-        p = 2.0             # curve sharpness (higher = more asymptotic)
-
-        return min_dist + (max_dist - min_dist) / (1 + k * (level ** p))
-
+        max_dist = 100.0
+        min_dist = 1.0
+        decay_rate = 0.6
+        curve_shape = 2.0
+        return min_dist + (max_dist - min_dist) / (1 + decay_rate * (level ** curve_shape))
