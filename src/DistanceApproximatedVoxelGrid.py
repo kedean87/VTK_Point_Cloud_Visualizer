@@ -199,28 +199,56 @@ class DistanceApproximatedVoxelGrid(VTKShaders):
   def getSlope(self, x1, y1, x2, y2):
     return (y2-y1)/(x2-x1)
   
-  def traverse(self, rootNode):
-    if rootNode:
-      children = [rootNode.left, rootNode.right]
-      for child in children:
-        if child:
-          self.traverse(child)
-          
-          if child.data:
-            normal =[float()]*3
-            self.handleVTKCloud.renderer.GetActiveCamera().GetEyePlaneNormal(normal)
-            
-            windowPose = self.handleVTKCloud.renderer.GetActiveCamera().GetPosition()
-            pointOfRef = np.array(windowPose) + 200 * np.array(normal)
-            
-            numPoints = child.data.bstPolyData.GetNumberOfPoints()
-            dist = self.getDistance(child.data.bstPolyData.GetCenter(), pointOfRef)
+  def computeSamplingFactor(self, distance, min_factor=1, max_factor=50, distance_scale=100.0):
+    """
+    Smoothly increases the sampling stride with distance.
+    distance_scale ~ maximum distance where full resolution is desired
+    """
+    normalized = np.clip(distance / distance_scale, 0, 1)
+    factor = min_factor + (max_factor - min_factor) * (normalized ** 2)  # quadratic smooth curve
+    return int(factor)
+
+  def computeSplatScale(self, distance, base=0.02, growth=0.005, min_scale=0.003, max_scale=0.15):
+    """
+    Increase splat size smoothly with distance.
+    base: splat size for nodes very close to camera
+    growth: how much splat size increases per unit distance
+    """
+    scale = base + growth * distance
+    return float(np.clip(scale, min_scale, max_scale))
+
   
-            if dist > 200:
-              self.randomSample(child, preset=[2, dist/800], factor=int(dist**2 / (2.0e4)))
+  def traverse(self, rootNode):
+    if not rootNode:
+        return
+
+    for child in [rootNode.left, rootNode.right]:
+        if not child:
+            continue
+        self.traverse(child)
+        
+        if child.data:
+            cam = self.handleVTKCloud.renderer.GetActiveCamera()
+            normal = [0.0, 0.0, 0.0]
+            cam.GetEyePlaneNormal(normal)
+            cam_pos = np.array(cam.GetPosition())
+            ref_point = cam_pos + 1 * np.array(normal)
+            
+            dist = self.getDistance(child.data.bstPolyData.GetCenter(), ref_point)
+            
+            splat_scale = self.computeSplatScale(dist)
+            sample_factor = self.computeSamplingFactor(dist)
+            
+            # Optional fade for distant nodes
+            opacity = np.clip(1.0 - (dist / 10.0)**0.5, 0.2, 1.0)
+            child.data.bstActor.GetProperty().SetOpacity(opacity)
+
+            if sample_factor > 1:
+                self.randomSample(child, preset=[self.handleVTKCloud.current_vtk_shader, splat_scale], factor=sample_factor)
             else:
-              child.data.bstActor.SetMapper(self.getMapper(child, child.data.bstPolyData, [3, 0.125]))
-          
+                child.data.bstActor.SetMapper(
+                    self.getMapper(child, child.data.bstPolyData, [self.handleVTKCloud.current_vtk_shader, splat_scale])
+                )
           
   def getMapper(self, rootNode, newData, shaderPresetIndex):
     pg_mapper = vtk.vtkPointGaussianMapper()
