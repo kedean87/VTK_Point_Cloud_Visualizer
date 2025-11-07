@@ -38,7 +38,7 @@ class FpsObserver:
   def _createFpsTextActor(self):
     self.mFpsActor = vtk.vtkTextActor()
     self.mFpsActor.GetTextProperty().SetFontFamilyAsString("Georgia")
-    self.mFpsActor.GetTextProperty().SetFontSize(125)
+    self.mFpsActor.GetTextProperty().SetFontSize(50)
     self.mFpsActor.GetTextProperty().SetColor([1, 2, 3])
     self.mFpsActor.SetPosition(self.ActorPosX, self.ActorPosY)
     self.mRenderer.AddActor(self.mFpsActor)
