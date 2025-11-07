@@ -47,7 +47,7 @@ class BSTPointCloud(VTKShaders):
     self.locator.BuildLocator()
     
     # create a point gaussian mapper to acquire screen splat projections
-    self.pg_mapper = vtk.vtkPointGaussianMapper()
+    self.pg_mapper = vtk.vtkOpenGLPointGaussianMapper()
     self.pg_mapper.SetInputData(self.bstPolyData)
     self.pg_mapper.SetScaleArray('radius')
     self.pg_mapper.SetScalarVisibility(True)
@@ -58,8 +58,9 @@ class BSTPointCloud(VTKShaders):
     # add mapper to the actor representing the region of points
     self.bstActor = vtk.vtkActor()
     self.bstActor.SetMapper(self.pg_mapper)
-    self.bstActor.GetProperty().BackfaceCullingOn()
-    self.bstActor.GetProperty().SetEmissiveFactor(2.0, 2.0, 2.0)
+    #self.bstActor.GetProperty().BackfaceCullingOn()
+    self.bstActor.GetProperty().SetEmissiveFactor(1.0, 1.0, 1.0)
+    self.bstActor.SetVisibility(False)
     
     bounds = self.bstPolyData.GetBounds()
     cube = vtk.vtkCubeSource()
@@ -71,6 +72,5 @@ class BSTPointCloud(VTKShaders):
     self.bounding_box_actor.SetMapper(mapper)
     self.bounding_box_actor.GetProperty().SetColor((1,2,3))
     self.bounding_box_actor.GetProperty().SetRepresentationToWireframe()
-    self.bounding_box_actor.GetProperty().SetLineWidth(2)
+    self.bounding_box_actor.GetProperty().SetLineWidth(4)
     self.bounding_box_actor.SetVisibility(False)
-        
