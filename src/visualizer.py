@@ -773,7 +773,7 @@ def main():
   renderWindow = vtk.vtkRenderWindow()
   renderWindow.AddRenderer(renderer)
   renderWindow.SetSize(screenWidth, screenHeight)
-  renderWindow.SetWindowName("ILLUSCIO - (medium) Engine Room")
+  renderWindow.SetWindowName("VTK Point Cloud Visualizer")
 
   # create the interactor
   areaPicker = vtk.vtkAreaPicker()
